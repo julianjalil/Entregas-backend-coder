@@ -1,5 +1,3 @@
-const { log } = require("console");
-
 class Producto {
     constructor(title, description, price, thumbnail, code, stock) {
         this.title = title;
@@ -188,4 +186,4 @@ class ProductManager {
     };
 }
 
-module.exports = { ProductManager };
+export default ProductManager;
