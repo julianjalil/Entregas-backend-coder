@@ -1,11 +1,13 @@
 class Producto {
-    constructor(title, description, price, thumbnail, code, stock) {
+    constructor(title, description, code, price, status, stock, category, thumbnails) {
         this.title = title;
         this.description = description;
-        this.price = price;
-        this.thumbnail = thumbnail;
         this.code = code;
+        this.price = price;
+        this.status = status;
         this.stock = stock;
+        this.category = category
+        this.thumbnails = thumbnails;
     }
 }
 
@@ -23,51 +25,49 @@ class ProductManager {
         this.#fs = require("fs");
     }
 
-    validate(title, description, price, thumbnail, code, stock) {
-        if (!title || !description || !price || !thumbnail || !code || !stock) {
-            throw new Error("Todos los campos son obligatorios.");
-        }
-
-        if (this.#products.some((product) => product.code === code)) {
-            throw new Error("El código del producto ya está en uso.");
-        }
-    }
-
-    addProduct = async (title, description, price, thumbnail, code, stock) => {
-        this.validate(title, description, price, thumbnail, code, stock);
-
-        let newProduct = new Producto(
-            this.incrementalId,
-            title,
-            description,
-            price,
-            thumbnail,
-            code,
-            stock
-        );
+    addProduct = async (title, description, code, price, status, stock, category, thumbnails) => {
         try {
-            //creacion del directorio
-            await this.#fs.promises.mkdir(this.#dirPath, { recursive: true });
-
-            //escritura del archivo
-            if (!this.#fs.existsSync(this.#filePath)) {
-                await this.#fs.promises.writeFile(this.#filePath, "[]");
+            if (!title || !description || !code || !price || !status || !stock || !category) {
+                throw new Error("Todos los campos son obligatorios");
             }
-
-            //lectura del archivo
+    
+            // Generar ID único
+            const newProductId = ProductManager.incrementalId++;
+    
+            // Nuevo producto
+            const newProduct = new Producto(
+                newProductId,
+                title,
+                description,
+                code,
+                price,
+                status = true,
+                stock,
+                category,
+                thumbnails
+            );
+    
+            // Leer los productos existentes del archivo
             let productosFile = await this.#fs.promises.readFile(
                 this.#filePath,
                 "utf-8"
             );
-
             this.#products = JSON.parse(productosFile);
-
+    
+            // Agregar el nuevo producto a la lista
             this.#products.push(newProduct);
+    
+            // Escribir los productos actualizados en el archivo
+            await this.#fs.promises.writeFile(
+                this.#filePath,
+                JSON.stringify(this.#products, null, 2)
+            );
+    
+            return newProduct;
         } catch (error) {
-            console.log(`Error al crear el producto. ${error}`);
+            console.error(`Error al crear el producto: ${error}`);
+            throw error;
         }
-
-        const id = ProductManager.incrementalId++;
     };
 
     getProducts = async () => {
@@ -163,7 +163,7 @@ class ProductManager {
 
             this.#products = JSON.parse(productosFile);
 
-            // Filtrar los productos excluyendo el que tiene el id especificado
+            // Filtrar productos
             this.#products = this.#products.filter(
                 (product) => product.id !== productId
             );
