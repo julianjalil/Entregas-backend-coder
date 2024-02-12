@@ -1,3 +1,5 @@
+import fs from 'fs';
+
 class Producto {
     constructor(title, description, code, price, status, stock, category, thumbnails) {
         this.title = title;
@@ -21,8 +23,8 @@ class ProductManager {
     constructor(products) {
         this.#products = new Array();
         this.#dirPath = "./files";
-        this.#filePath = this.#dirPath + "./productos.json";
-        this.#fs = require("fs");
+        this.#filePath = this.#dirPath + "/productos.json";
+        this.#fs = fs.readFileSync(this.#filePath, 'utf-8');
     }
 
     addProduct = async (title, description, code, price, status, stock, category, thumbnails) => {
